@@ -3,10 +3,10 @@ CIFAR-10 を使って FLIS-HC を 5 回実行するスクリプト。
 各試行でシードを変えて再現性のある結果を収集する。
 """
 
+import json
+import os
 import subprocess
 import sys
-import os
-import json
 from pathlib import Path
 
 # 実験設定
@@ -23,7 +23,7 @@ BASE_CONFIG = {
     "datadir": "./data/",
     "savedir": "./save_results/",
     "logdir": "./logs/",
-    "partition": "noniid-labeldir",
+    "partition": "noniid-#label2",
     "alg": "flis_hc",
     "beta": 0.1,
     "noise": 0,
@@ -53,10 +53,10 @@ def run_trial(trial: int, seed: int, log_dir: Path) -> int:
     log_file = log_dir / f"trial_{trial}_seed_{seed}.txt"
 
     cmd = build_command(trial, seed)
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Trial {trial}/{NUM_TRIALS}  (seed={seed})")
     print(f"Log: {log_file}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     with open(log_file, "w") as f:
         result = subprocess.run(
@@ -88,9 +88,9 @@ def main():
         status = "OK" if returncode == 0 else f"FAILED (code={returncode})"
         print(f"Trial {i} finished: {status}")
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("全試行完了")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     for r in results:
         status = "OK" if r["returncode"] == 0 else f"FAILED (code={r['returncode']})"
         print(f"  Trial {r['trial']} (seed={r['seed']}): {status}")
