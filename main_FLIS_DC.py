@@ -1,14 +1,15 @@
 import numpy as np
 
 import copy
-import os 
-import gc 
+import os
+import gc
 
 import torch
 from torch import nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
+from tqdm import tqdm
 
 from src.data import *
 from src.models import *
@@ -129,6 +130,13 @@ def init_nets(args, dropout_p=0.5):
             net = ResNet50_cifar10().to(args.device)
         elif args.model == "vgg16":
             net = vgg16().to(args.device)
+        elif args.model == "lenet5":
+            if args.dataset in ("cifar10", "cinic10", "svhn"):
+                net = LeNet5Cifar10().to(args.device)
+            elif args.dataset == "cifar100":
+                net = LeNet5Cifar100().to(args.device)
+            elif args.dataset in ("mnist", "femnist", "fmnist"):
+                net = LeNet5Mnist().to(args.device)
         else:
             print("not supported yet")
             exit(1)
@@ -243,11 +251,12 @@ clust_err = []
 clust_acc = []
 
 count_clusters = {i:0 for i in range(1, args.rounds)}
-for iteration in range(args.rounds):
-        
+pbar = tqdm(range(args.rounds), desc="Rounds")
+for iteration in pbar:
+
     m = max(int(args.frac * args.num_users), 1)
     idxs_users = np.random.choice(range(args.num_users), m, replace=False)
-    
+
     print(f'###### ROUND {iteration+1} ######')
     print(f'Clients {idxs_users}')
     
@@ -356,7 +365,9 @@ for iteration in range(args.rounds):
     
     template = "AVG Final Test Loss: {:.3f}, AVG Final Test Acc: {:.3f}"
     print(template.format(avg_final_tloss, avg_final_tacc))
-    
+
+    pbar.set_postfix(loss=f"{loss_avg:.3f}", acc=f"{avg_final_tacc:.3f}", best=f"{best_glob_acc:.3f}")
+
     if iteration%args.print_freq == 0 and iteration != 0:
         print('--- PRINTING ALL CLIENTS STATUS ---')
         current_acc = []
@@ -483,6 +494,7 @@ with open(path+str(args.trial)+'_final_results.txt', 'a') as text_file:
     print(f'Best Clients AVG Acc: {np.mean(clients_best_acc)}', file=text_file)
     print(f'Best Global Model Acc: {best_glob_acc}', file=text_file)
     print(f'Total_clusters: {total_clusters}, Avg clusters per round: {Avg_clusters_per_round}', file=text_file)
-    print(f'Avg clustering error: {avg_clust_err}, Avg clustering acc: {avg_clust_acc}')
+    print(f'Avg clustering error: {avg_clust_err}, Avg clustering acc: {avg_clust_acc}', file=text_file)
+    print(f'Acc Per Round: {",".join(f"{v:.4f}" for v in final_tacc_pr)}', file=text_file)
 
     

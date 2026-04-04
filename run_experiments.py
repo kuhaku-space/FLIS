@@ -11,7 +11,7 @@ from pathlib import Path
 
 # 実験設定
 BASE_CONFIG = {
-    "rounds": 500,
+    "rounds": 220,
     "num_users": 100,
     "frac": 0.1,
     "local_ep": 10,
@@ -34,8 +34,8 @@ BASE_CONFIG = {
     "print_freq": 50,
 }
 
-NUM_TRIALS = 5
-SEEDS = [1, 2, 3, 4, 5]
+NUM_TRIALS = 1
+SEEDS = [6]
 
 
 def build_command(trial: int, seed: int) -> list[str]:
@@ -56,23 +56,22 @@ def run_trial(trial: int, seed: int, log_dir: Path) -> int:
     print(f"\n{'=' * 60}")
     print(f"Trial {trial}/{NUM_TRIALS}  (seed={seed})")
     print(f"Log: {log_file}")
-    print(f"{'=' * 60}")
+    print(f"{'=' * 60}", flush=True)
 
     with open(log_file, "w") as f:
-        result = subprocess.run(
+        proc = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
         )
-        f.write(result.stdout)
+        for line in proc.stdout:
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            f.write(line)
+        proc.wait()
 
-    # 最終行付近を表示して進捗確認
-    lines = result.stdout.strip().splitlines()
-    for line in lines[-10:]:
-        print(line)
-
-    return result.returncode
+    return proc.returncode
 
 
 def main():

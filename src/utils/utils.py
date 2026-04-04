@@ -692,19 +692,23 @@ def get_dataloader(dataset, datadir, train_bs, test_bs, dataidxs=None, noise_lev
             train_ds = dl_obj(datadir+'tiny-imagenet-200/train/', dataidxs=dataidxs, transform=transform_train)
             test_ds = dl_obj(datadir+'tiny-imagenet-200/val/', transform=transform_test)
 
-            train_dl = data.DataLoader(dataset=train_ds, batch_size=train_bs, drop_last=True, shuffle=True)
-            test_dl = data.DataLoader(dataset=test_ds, batch_size=test_bs, shuffle=False)
+            train_dl = data.DataLoader(dataset=train_ds, batch_size=train_bs, drop_last=True, shuffle=True,
+                                       num_workers=4, pin_memory=True)
+            test_dl = data.DataLoader(dataset=test_ds, batch_size=test_bs, shuffle=False,
+                                      num_workers=4, pin_memory=True)
         else:
             dl_obj = Generated
             transform_train = None
             transform_test = None
-        
+
         if dataset != 'tinyimagenet':
             train_ds = dl_obj(datadir, dataidxs=dataidxs, train=True, transform=transform_train, download=True)
             test_ds = dl_obj(datadir, dataidxs=dataidxs_test, train=False, transform=transform_test, download=True)
 
-            train_dl = data.DataLoader(dataset=train_ds, batch_size=train_bs, shuffle=True, drop_last=False)
-            test_dl = data.DataLoader(dataset=test_ds, batch_size=test_bs, shuffle=False, drop_last=False)
+            train_dl = data.DataLoader(dataset=train_ds, batch_size=train_bs, shuffle=True, drop_last=False,
+                                       num_workers=4, pin_memory=True)
+            test_dl = data.DataLoader(dataset=test_ds, batch_size=test_bs, shuffle=False, drop_last=False,
+                                      num_workers=4, pin_memory=True)
 
     return train_dl, test_dl, train_ds, test_ds
 

@@ -13,10 +13,7 @@ def FedAvg(w, weight_avg=None):
         
     w_avg = copy.deepcopy(w[0])
     for k in w_avg.keys():
-        w_avg[k] = w_avg[k].cuda() * weight_avg[0]
-        
-    for k in w_avg.keys():
+        w_avg[k] = w_avg[k] * weight_avg[0]
         for i in range(1, len(w)):
-            w_avg[k] = w_avg[k].cuda() + w[i][k].cuda() * weight_avg[i]
-        #w_avg[k] = torch.div(w_avg[k].cuda(), len(w)) 
+            w_avg[k] = w_avg[k] + w[i][k].to(w_avg[k].device) * weight_avg[i]
     return w_avg

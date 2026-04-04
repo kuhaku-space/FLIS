@@ -33,7 +33,7 @@ class Client_FLIS(object):
         for iteration in range(self.local_ep):
             batch_loss = []
             for batch_idx, (images, labels) in enumerate(self.ldr_train):
-                images, labels = images.to(self.device), labels.to(self.device)
+                images, labels = images.to(self.device, non_blocking=True), labels.to(self.device, non_blocking=True)
                 self.net.zero_grad()
                 #optimizer.zero_grad()
                 log_probs = self.net(images)
@@ -70,7 +70,7 @@ class Client_FLIS(object):
         correct = 0
         with torch.no_grad():
             for data, target in self.ldr_test:
-                data, target = data.to(self.device), target.to(self.device)
+                data, target = data.to(self.device, non_blocking=True), target.to(self.device, non_blocking=True)
                 output = self.net(data)
                 test_loss += F.cross_entropy(output, target, reduction='sum').item()  # sum up batch loss
                 pred = output.data.max(1, keepdim=True)[1]  # get the index of the max log-probability
@@ -78,7 +78,7 @@ class Client_FLIS(object):
         test_loss /= len(self.ldr_test.dataset)
         accuracy = 100. * correct / len(self.ldr_test.dataset)
         return test_loss, accuracy
-    
+
     def eval_test_glob(self, glob_dl):
         self.net.to(self.device)
         self.net.eval()
@@ -86,7 +86,7 @@ class Client_FLIS(object):
         correct = 0
         with torch.no_grad():
             for data, target in glob_dl:
-                data, target = data.to(self.device), target.to(self.device)
+                data, target = data.to(self.device, non_blocking=True), target.to(self.device, non_blocking=True)
                 output = self.net(data)
                 test_loss += F.cross_entropy(output, target, reduction='sum').item()  # sum up batch loss
                 pred = output.data.max(1, keepdim=True)[1]  # get the index of the max log-probability
@@ -102,7 +102,7 @@ class Client_FLIS(object):
         correct = 0
         with torch.no_grad():
             for data, target in self.ldr_train:
-                data, target = data.to(self.device), target.to(self.device)
+                data, target = data.to(self.device, non_blocking=True), target.to(self.device, non_blocking=True)
                 output = self.net(data)
                 train_loss += F.cross_entropy(output, target, reduction='sum').item()  # sum up batch loss
                 pred = output.data.max(1, keepdim=True)[1]  # get the index of the max log-probability
